@@ -1,77 +1,38 @@
 # testxray
 
-Unified installer for **[autoXRAY](https://github.com/xVRVx/autoXRAY)** + **[3x-ui](https://github.com/MHSanaei/3x-ui)**.
+**One command** installs [autoXRAY](https://github.com/xVRVx/autoXRAY) + [3x-ui](https://github.com/MHSanaei/3x-ui) with all inbounds imported into the panel.
 
-autoXRAY configures nginx (selfsteal), certificates, WARP, and generates secrets. **3x-ui** is the only runtime manager for Xray: inbounds are imported via the panel REST API.
-
-## Requirements
-
-- Clean **Debian 12** or **Ubuntu 22.04/24.04** (root)
-- Domain with **A record** pointing to the server
-- Ports: 22 (SSH), 80 (certbot), 443, 8443, 10443, panel port (random by default)
-
-## Quick install
+## Install
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/Koviand/testxray/main/curl-install.sh)" -- your.domain.com
+bash <(curl -fsSL https://raw.githubusercontent.com/Koviand/testxray/main/install.sh) -- your.domain.com
 ```
+
+Requirements: Debian 12 or Ubuntu 22.04+, root, domain A-record → server IP.
+
+The installer will:
+
+1. Deploy autoXRAY (nginx, certs, WARP, secrets)
+2. Install 3x-ui (official release)
+3. Import **7 inbounds** into the panel via API
+4. Mask standalone `xray.service` (only panel manages Xray)
+
+## After install
+
+- Panel URL, login and password are printed at the end
+- Credentials: `/etc/testxray/credentials.env`
+- Re-run the **same command** to resume or update (skips completed steps)
 
 ## Options
 
 ```bash
-bash /usr/local/testxray/install.sh -- your.domain.com --panel-port 2053 --web-base-path mypath/
-bash /usr/local/testxray/install.sh -- your.domain.com --panel-user admin --panel-pass 'secret'
-bash /usr/local/testxray/install.sh -- your.domain.com --force   # re-seed managed inbounds
+bash <(curl -fsSL .../install.sh) -- domain.com --skip-certbot
+bash <(curl -fsSL .../install.sh) -- domain.com --panel-port 2053 --panel-pass 'secret'
+bash <(curl -fsSL .../install.sh) -- domain.com --reinstall
 ```
 
-## Architecture
-
-| Component | Role |
-|-----------|------|
-| autoXRAY `--panel-mode` | nginx, certbot, WARP, Happ pages, `/etc/autoXRAY/panel-metadata.json` |
-| 3x-ui (official install) | Panel + single Xray process |
-| `autoxray-api-seed` | Imports 7 inbounds + routing template via API |
-| `xray.service` | **masked** — do not use standalone Xray |
-
-## Managed inbounds
-
-| Tag | Port | Notes |
-|-----|------|-------|
-| `vsRAWrtyVISION` | 443 | REALITY → fallback 3333 |
-| `vsXHTTPrty` | 3333 | Inner XHTTP (pair with REALITY) |
-| `vsRAWtlsVISION` | 8443 | TLS stack |
-| `vsXHTTPtls` | 8400 | |
-| `vsGRPCtls` | 8411 | |
-| `vsWSinternal` | `@vless-ws` | WS fallback |
-| `socks5` | 10443 | Mixed proxy |
-
-Edit clients and enable/disable inbounds in the panel UI. Keep **443 REALITY** and **3333 XHTTP** consistent when changing paths or UUIDs.
-
-## Files on server
-
-| Path | Purpose |
-|------|---------|
-| `/usr/local/testxray` | Installer bundle |
-| `/etc/testxray/credentials.env` | Panel URL, user, API token |
-| `/etc/autoXRAY/panel-metadata.json` | autoXRAY secrets |
-| `/etc/x-ui/x-ui.db` | Panel database (source of truth) |
-
-## Verify
+## Repair inbounds only
 
 ```bash
-bash /usr/local/testxray/scripts/verify-install.sh
+bash /usr/local/testxray/scripts/seed-panel.sh
 ```
-
-See [docs/e2e-checklist.md](docs/e2e-checklist.md).
-
-## Uninstall
-
-```bash
-bash /usr/local/testxray/uninstall.sh
-x-ui uninstall   # panel separately
-```
-
-## Phase 2 (not in v1)
-
-- RU→EU bridge scripts
-- MTProto FakeTLS test profile

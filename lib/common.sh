@@ -39,7 +39,7 @@ ensure_deps() {
   log "Installing dependencies..."
   export DEBIAN_FRONTEND=noninteractive
   apt-get update -qq
-  apt-get install -y curl jq git python3 ca-certificates
+  apt-get install -y curl jq git python3 ca-certificates golang-go openssl
 }
 
 ensure_dirs() {

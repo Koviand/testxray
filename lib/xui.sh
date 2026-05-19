@@ -67,23 +67,3 @@ mask_standalone_xray() {
   systemctl mask xray 2>/dev/null || true
 }
 
-build_api_seed() {
-  log "Building autoxray-api-seed..."
-  (cd "${INSTALL_ROOT}/tools/autoxray-api-seed" && go build -o /usr/local/bin/autoxray-api-seed .)
-}
-
-run_api_seed() {
-  local extra=()
-  [[ "${FORCE_SEED:-0}" == "1" ]] && extra+=(--force)
-  log "Refreshing panel credentials from live x-ui settings..."
-  refresh_credentials_from_panel
-  systemctl stop xray 2>/dev/null || true
-  log "Seeding inbounds via panel API..."
-  if ! autoxray-api-seed \
-    --credentials "$TESTXRAY_CREDENTIALS" \
-    --state "$AUTOXRAY_METADATA" \
-    --install-dir "$INSTALL_ROOT" \
-    "${extra[@]}" 2>&1 | tee /var/log/testxray-seed.log; then
-    die "autoxray-api-seed failed — see /var/log/testxray-seed.log"
-  fi
-}

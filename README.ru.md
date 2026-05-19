@@ -1,78 +1,41 @@
 # testxray
 
-Единый установщик **[autoXRAY](https://github.com/xVRVx/autoXRAY)** + **[3x-ui](https://github.com/MHSanaei/3x-ui)**.
+**Одна команда** ставит [autoXRAY](https://github.com/xVRVx/autoXRAY) + [3x-ui](https://github.com/MHSanaei/3x-ui) и импортирует все inbound'ы в панель.
 
-autoXRAY настраивает nginx (selfsteal), сертификаты, WARP и генерирует секреты. **3x-ui** — единственный менеджер процесса Xray: inbound'ы импортируются через REST API панели.
-
-## Требования
-
-- Чистый **Debian 12** или **Ubuntu 22.04/24.04** (root)
-- Домен с **A-записью** на IP сервера
-- Порты: SSH, 80, 443, 8443, 10443, порт панели
-
-## Установка одной командой
+## Установка
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/Koviand/testxray/main/curl-install.sh)" -- ваш.домен.com
+bash <(curl -fsSL https://raw.githubusercontent.com/Koviand/testxray/main/install.sh) -- ваш.домен.com
 ```
+
+Нужно: Debian 12 или Ubuntu 22.04+, root, A-запись домена на IP сервера.
+
+Установщик автоматически:
+
+1. Разворачивает autoXRAY (nginx, сертификаты, WARP, секреты)
+2. Ставит 3x-ui
+3. Импортирует **7 inbound** в панель через API
+4. Отключает отдельный `xray.service` (Xray только через панель)
+
+## После установки
+
+В конце выводятся URL панели, логин и пароль.
+
+- Учётные данные: `/etc/testxray/credentials.env`
+- Лог импорта: `/var/log/testxray-seed.log`
+- **Повторный запуск той же команды** продолжит/дополнит установку (уже сделанные шаги пропускаются)
 
 ## Параметры
 
 ```bash
-bash /usr/local/testxray/install.sh -- домен.com --panel-port 2053
-bash /usr/local/testxray/install.sh -- домен.com --force
-bash /usr/local/testxray/install.sh -- домен.com --skip-certbot
+bash <(curl -fsSL .../install.sh) -- домен.com --skip-certbot
+bash <(curl -fsSL .../install.sh) -- домен.com --panel-port 2053 --panel-pass 'пароль'
 ```
 
-### Ошибка certbot / rate-limit Let's Encrypt
+`--skip-certbot` — не запрашивать новый LE-сертификат (если rate-limit или используется self-signed).
 
-Если видите `too many certificates` — на сервере уже могут быть файлы в `/etc/letsencrypt/live/ваш.домен/`.
-Обновите testxray и запустите снова (скрипт подхватит существующий cert), либо явно:
-
-```bash
-export SKIP_CERTBOT=1
-bash /usr/local/testxray/install.sh -- testkovi.chickenkiller.com --skip-certbot
-```
-
-Проверка: `ls -la /etc/letsencrypt/live/ваш.домен/`
-
-Если LE-сертификата нет (rate-limit), установка с `--skip-certbot` создаст **временный self-signed** cert (профили на 8443 с предупреждением; REALITY на 443 обычно работает).
-
-Обновить копию на сервере (при расхождении git):
+## Только импорт в панель
 
 ```bash
-cd /usr/local/testxray && git fetch origin main && git reset --hard origin/main
-bash install.sh -- ваш.домен.com --skip-certbot
-```
-
-## Важно
-
-- После установки **`xray.service` замаскирован** — работает только Xray под `x-ui`.
-- Профиль «VLESS XHTTP REALITY» — цепочка inbound'ов **443 REALITY** + **3333 XHTTP**; меняйте их согласованно в панели.
-- Подписка Happ обновляется таймером `testxray-sync-sub.timer` (каждые 3 мин).
-
-## Проверка
-
-```bash
-bash /usr/local/testxray/scripts/verify-install.sh
-```
-
-## Inbound'ов нет в панели
-
-Если autoXRAY отработал, но в 3x-ui пусто — вручную импортируйте конфигурации:
-
-```bash
-cd /usr/local/testxray && git pull && git reset --hard origin/main
-bash scripts/seed-panel.sh
-```
-
-Лог: `/var/log/testxray-seed.log`. Должно появиться 7 inbound с префиксом `autoXRAY` в remark.
-
-Подробный чеклист: [docs/e2e-checklist.md](docs/e2e-checklist.md).
-
-## Удаление
-
-```bash
-bash /usr/local/testxray/uninstall.sh
-x-ui uninstall
+bash /usr/local/testxray/scripts/seed-panel.sh
 ```
