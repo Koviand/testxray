@@ -1,0 +1,79 @@
+{
+  "log": {
+    "dnsLog": false,
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log",
+    "loglevel": "none"
+  },
+  "dns": {
+    "servers": [
+      "https+local://8.8.4.4/dns-query",
+      "https+local://8.8.8.8/dns-query",
+      "https+local://1.1.1.1/dns-query",
+      "localhost"
+    ],
+    "queryStrategy": "UseIPv4"
+  },
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "rules": [
+      {
+        "ip": ["geoip:private"],
+        "outboundTag": "block"
+      },
+      {
+        "port": "25",
+        "outboundTag": "block"
+      },
+      {
+        "protocol": ["bittorrent"],
+        "outboundTag": "block"
+      },
+      {
+        "domain": ["geosite:category-ads", "geosite:win-spy", "geosite:private"],
+        "outboundTag": "block"
+      },
+      {
+        "outboundTag": "warp",
+        "domain": [
+          "ifconfig.me",
+          "checkip.amazonaws.com",
+          "pify.org",
+          "2ip.io",
+          "habr.com",
+          "geosite:category-ip-geo-detect",
+          "geosite:google-gemini",
+          "geosite:canva",
+          "geosite:openai",
+          "geosite:whatsapp",
+          "geosite:category-ru"
+        ]
+      }
+    ]
+  },
+  "outbounds": [
+    {
+      "tag": "direct",
+      "protocol": "freedom",
+      "settings": {
+        "domainStrategy": "ForceIPv4"
+      }
+    },
+    {
+      "tag": "block",
+      "protocol": "blackhole"
+    },
+    {
+      "tag": "warp",
+      "protocol": "socks",
+      "settings": {
+        "servers": [
+          {
+            "address": "127.0.0.1",
+            "port": 40000
+          }
+        ]
+      }
+    }
+  ]
+}

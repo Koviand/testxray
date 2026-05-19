@@ -1,0 +1,9 @@
+{
+  "vsWSinternal": "autoXRAY — WS internal (@vless-ws)",
+  "vsXHTTPrty": "autoXRAY — VLESS XHTTP REALITY (inner 3333)",
+  "vsXHTTPtls": "autoXRAY — VLESS XHTTP TLS (8400)",
+  "vsGRPCtls": "autoXRAY — VLESS gRPC TLS (8411)",
+  "vsRAWrtyVISION": "autoXRAY — VLESS RAW REALITY VISION (443)",
+  "vsRAWtlsVISION": "autoXRAY — VLESS RAW TLS VISION (8443)",
+  "socks5": "autoXRAY — SOCKS mixed (10443)"
+}

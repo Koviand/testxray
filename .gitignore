@@ -1,0 +1,11 @@
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+tools/autoxray-api-seed/autoxray-api-seed
+tools/autoxray-api-seed/autoxray-api-seed.exe
+
+*.local
+credentials.env

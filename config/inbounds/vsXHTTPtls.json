@@ -1,0 +1,11 @@
+{
+  "remark": "autoXRAY — VLESS XHTTP TLS (8400)",
+  "enable": true,
+  "listen": "127.0.0.1",
+  "port": 8400,
+  "protocol": "vless",
+  "tag": "vsXHTTPtls",
+  "settings": "{\"clients\":[{\"id\":\"{{UUID}}\",\"email\":\"{{EMAIL}}\",\"enable\":true,\"subId\":\"{{SUB_ID}}\"}],\"decryption\":\"none\"}",
+  "streamSettings": "{\"network\":\"xhttp\",\"security\":\"none\",\"xhttpSettings\":{\"mode\":\"auto\",\"path\":\"/{{PATH_XHTTP}}\"},\"sockopt\":{\"acceptProxyProtocol\":false}}",
+  "sniffing": "{\"enabled\":true,\"destOverride\":[\"http\",\"tls\",\"quic\"]}"
+}

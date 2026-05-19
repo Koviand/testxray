@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Go test
+        run: go test ./tools/autoxray-api-seed/...
+      - name: Validate JSON templates
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y jq
+          jq empty config/templates/xray-template.json
+          for f in config/inbounds/*.json; do jq empty "$f"; done
+      - name: Shellcheck
+        run: |
+          sudo apt-get install -y shellcheck
+          shellcheck -e SC1091,SC2034 install.sh curl-install.sh lib/*.sh hooks/*.sh scripts/*.sh || true

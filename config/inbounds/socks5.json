@@ -1,0 +1,11 @@
+{
+  "remark": "autoXRAY — SOCKS mixed (10443)",
+  "enable": true,
+  "listen": "",
+  "port": 10443,
+  "protocol": "mixed",
+  "tag": "socks5",
+  "settings": "{\"ip\":\"0.0.0.0\",\"udp\":true,\"auth\":\"password\",\"accounts\":[{\"user\":\"{{SOCKS_USER}}\",\"pass\":\"{{SOCKS_PASS}}\"}]}",
+  "streamSettings": "{}",
+  "sniffing": "{}"
+}

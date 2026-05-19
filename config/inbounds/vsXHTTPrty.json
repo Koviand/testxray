@@ -1,0 +1,11 @@
+{
+  "remark": "autoXRAY — VLESS XHTTP REALITY (inner 3333)",
+  "enable": true,
+  "listen": "127.0.0.1",
+  "port": 3333,
+  "protocol": "vless",
+  "tag": "vsXHTTPrty",
+  "settings": "{\"clients\":[{\"id\":\"{{UUID}}\",\"email\":\"{{EMAIL}}\",\"enable\":true,\"subId\":\"{{SUB_ID}}\"}],\"decryption\":\"none\"}",
+  "streamSettings": "{\"network\":\"xhttp\",\"security\":\"none\",\"xhttpSettings\":{\"mode\":\"stream-one\",\"path\":\"/{{PATH_XHTTP}}\"},\"sockopt\":{\"acceptProxyProtocol\":true}}",
+  "sniffing": "{\"enabled\":true,\"destOverride\":[\"http\",\"tls\",\"quic\"]}"
+}

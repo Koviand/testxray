@@ -1,0 +1,11 @@
+{
+  "remark": "autoXRAY — VLESS RAW TLS VISION (8443)",
+  "enable": true,
+  "listen": "",
+  "port": 8443,
+  "protocol": "vless",
+  "tag": "vsRAWtlsVISION",
+  "settings": "{\"clients\":[{\"id\":\"{{UUID}}\",\"email\":\"{{EMAIL}}\",\"enable\":true,\"subId\":\"{{SUB_ID}}\",\"flow\":\"xtls-rprx-vision\"}],\"decryption\":\"none\",\"fallbacks\":[{\"path\":\"/{{PATH_XHTTP}}22\",\"dest\":\"@vless-ws\",\"xver\":2},{\"path\":\"/ssws\",\"dest\":\"4001\"},{\"alpn\":\"h2\",\"dest\":\"/dev/shm/nginx_h2.sock\",\"xver\":2},{\"dest\":\"/dev/shm/nginxTLS.sock\",\"xver\":2}]}",
+  "streamSettings": "{\"network\":\"raw\",\"security\":\"tls\",\"tlsSettings\":{\"certificates\":[{\"certificateFile\":\"/var/lib/xray/cert/fullchain.pem\",\"keyFile\":\"/var/lib/xray/cert/privkey.pem\"}],\"minVersion\":\"1.2\",\"cipherSuites\":\"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256\",\"alpn\":[\"h2\",\"http/1.1\"]}}",
+  "sniffing": "{\"enabled\":true,\"destOverride\":[\"http\",\"tls\",\"quic\"]}"
+}

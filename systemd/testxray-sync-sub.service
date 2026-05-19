@@ -1,0 +1,11 @@
+[Unit]
+Description=testxray Happ subscription sync
+After=network-online.target x-ui.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/testxray/scripts/sync-subscription.py
+Environment=INSTALL_ROOT=/usr/local/testxray
+
+[Install]
+WantedBy=multi-user.target

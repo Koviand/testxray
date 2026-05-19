@@ -1,0 +1,45 @@
+# testxray
+
+Единый установщик **[autoXRAY](https://github.com/xVRVx/autoXRAY)** + **[3x-ui](https://github.com/MHSanaei/3x-ui)**.
+
+autoXRAY настраивает nginx (selfsteal), сертификаты, WARP и генерирует секреты. **3x-ui** — единственный менеджер процесса Xray: inbound'ы импортируются через REST API панели.
+
+## Требования
+
+- Чистый **Debian 12** или **Ubuntu 22.04/24.04** (root)
+- Домен с **A-записью** на IP сервера
+- Порты: SSH, 80, 443, 8443, 10443, порт панели
+
+## Установка одной командой
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/Koviand/testxray/main/curl-install.sh)" -- ваш.домен.com
+```
+
+## Параметры
+
+```bash
+bash /usr/local/testxray/install.sh -- домен.com --panel-port 2053
+bash /usr/local/testxray/install.sh -- домен.com --force
+```
+
+## Важно
+
+- После установки **`xray.service` замаскирован** — работает только Xray под `x-ui`.
+- Профиль «VLESS XHTTP REALITY» — цепочка inbound'ов **443 REALITY** + **3333 XHTTP**; меняйте их согласованно в панели.
+- Подписка Happ обновляется таймером `testxray-sync-sub.timer` (каждые 3 мин).
+
+## Проверка
+
+```bash
+bash /usr/local/testxray/scripts/verify-install.sh
+```
+
+Подробный чеклист: [docs/e2e-checklist.md](docs/e2e-checklist.md).
+
+## Удаление
+
+```bash
+bash /usr/local/testxray/uninstall.sh
+x-ui uninstall
+```

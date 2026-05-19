@@ -1,0 +1,11 @@
+{
+  "remark": "autoXRAY — WS internal (@vless-ws)",
+  "enable": true,
+  "listen": "@vless-ws",
+  "port": 0,
+  "protocol": "vless",
+  "tag": "vsWSinternal",
+  "settings": "{\"clients\":[{\"id\":\"{{UUID}}\",\"email\":\"{{EMAIL}}\",\"enable\":true,\"subId\":\"{{SUB_ID}}\"}],\"decryption\":\"none\"}",
+  "streamSettings": "{\"network\":\"ws\",\"security\":\"none\",\"wsSettings\":{\"acceptProxyProtocol\":true,\"path\":\"/{{PATH_XHTTP}}22\"}}",
+  "sniffing": "{\"enabled\":true,\"destOverride\":[\"http\",\"tls\",\"quic\"]}"
+}
