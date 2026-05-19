@@ -43,23 +43,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := client.Login(); err != nil {
-		fmt.Fprintf(os.Stderr, "login: %v\n", err)
-		os.Exit(1)
-	}
-
-	if err := client.EnsureCSRF(); err != nil {
-		fmt.Fprintf(os.Stderr, "csrf: %v\n", err)
-		os.Exit(1)
-	}
-
-	if creds.APIToken != "" {
-		client.SetToken(creds.APIToken)
-	} else if err := client.EnsureAPIToken(); err != nil {
-		fmt.Fprintf(os.Stderr, "api token: %v\n", err)
-		os.Exit(1)
-	} else if err := SaveAPIToken(*credsPath, client.Token()); err != nil {
-		fmt.Fprintf(os.Stderr, "save token: %v\n", err)
+	fmt.Fprintf(os.Stderr, "panel base URL: %s\n", creds.BaseURL)
+	if err := client.Authenticate(*credsPath, creds); err != nil {
+		fmt.Fprintf(os.Stderr, "auth: %v\n", err)
 		os.Exit(1)
 	}
 

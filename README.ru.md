@@ -57,6 +57,17 @@ bash install.sh -- ваш.домен.com --skip-certbot
 bash /usr/local/testxray/scripts/verify-install.sh
 ```
 
+## Inbound'ов нет в панели
+
+Если autoXRAY отработал, но в 3x-ui пусто — вручную импортируйте конфигурации:
+
+```bash
+cd /usr/local/testxray && git pull && git reset --hard origin/main
+bash scripts/seed-panel.sh
+```
+
+Лог: `/var/log/testxray-seed.log`. Должно появиться 7 inbound с префиксом `autoXRAY` в remark.
+
 Подробный чеклист: [docs/e2e-checklist.md](docs/e2e-checklist.md).
 
 ## Удаление

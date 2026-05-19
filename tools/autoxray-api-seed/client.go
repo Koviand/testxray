@@ -54,7 +54,8 @@ func (c *Client) Login() error {
 	form := url.Values{}
 	form.Set("username", c.user)
 	form.Set("password", c.pass)
-	req, err := http.NewRequest(http.MethodPost, c.base+"/login", strings.NewReader(form.Encode()))
+	loginURL := strings.TrimRight(c.base, "/") + "/login"
+	req, err := http.NewRequest(http.MethodPost, loginURL, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
@@ -80,7 +81,7 @@ func (c *Client) EnsureCSRF() error {
 	if c.csrf != "" {
 		return nil
 	}
-	req, err := http.NewRequest(http.MethodGet, c.base+"/panel/csrf-token", nil)
+	req, err := http.NewRequest(http.MethodGet, strings.TrimRight(c.base, "/")+"/panel/csrf-token", nil)
 	if err != nil {
 		return err
 	}
@@ -109,7 +110,8 @@ func (c *Client) EnsureAPIToken() error {
 	if c.token != "" {
 		return nil
 	}
-	body := map[string]string{"name": "testxray-seed"}
+	name := "testxray-seed"
+	body := map[string]string{"name": name}
 	b, _ := json.Marshal(body)
 	req, err := http.NewRequest(http.MethodPost, c.base+"/panel/apiTokens/create", bytes.NewReader(b))
 	if err != nil {
@@ -127,20 +129,24 @@ func (c *Client) EnsureAPIToken() error {
 	if err := json.Unmarshal(raw, &msg); err != nil {
 		return err
 	}
-	if !msg.Success {
-		return fmt.Errorf("create token: %s", msg.Msg)
+	if msg.Success {
+		var view struct {
+			Token string `json:"token"`
+		}
+		if err := json.Unmarshal(msg.Obj, &view); err != nil {
+			return err
+		}
+		if view.Token == "" {
+			return fmt.Errorf("empty api token")
+		}
+		c.token = view.Token
+		return nil
 	}
-	var view struct {
-		Token string `json:"token"`
+	// Token name already exists — session auth is enough; ignore.
+	if strings.Contains(strings.ToLower(msg.Msg), "already") {
+		return nil
 	}
-	if err := json.Unmarshal(msg.Obj, &view); err != nil {
-		return err
-	}
-	if view.Token == "" {
-		return fmt.Errorf("empty api token")
-	}
-	c.token = view.Token
-	return nil
+	return fmt.Errorf("create token: %s", msg.Msg)
 }
 
 func (c *Client) setSessionHeaders(req *http.Request) {
@@ -168,7 +174,7 @@ func (c *Client) UpdateXrayTemplate(tplPath string) error {
 	_ = w.WriteField("outboundTestUrl", "https://www.google.com/generate_204")
 	w.Close()
 
-	req, err := http.NewRequest(http.MethodPost, c.base+"/panel/xray/update", &buf)
+	req, err := http.NewRequest(http.MethodPost, strings.TrimRight(c.base, "/")+"/panel/xray/update", &buf)
 	if err != nil {
 		return err
 	}
@@ -183,7 +189,7 @@ func (c *Client) UpdateXrayTemplate(tplPath string) error {
 }
 
 func (c *Client) ListInbounds() ([]Inbound, error) {
-	req, err := http.NewRequest(http.MethodGet, c.base+"/panel/api/inbounds/list", nil)
+	req, err := http.NewRequest(http.MethodGet, strings.TrimRight(c.base, "/")+"/panel/api/inbounds/list", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +221,7 @@ func (c *Client) ListInbounds() ([]Inbound, error) {
 }
 
 func (c *Client) DeleteInbound(id int) error {
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/panel/api/inbounds/del/%d", c.base, id), nil)
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/panel/api/inbounds/del/%d", strings.TrimRight(c.base, "/"), id), nil)
 	if err != nil {
 		return err
 	}
@@ -229,7 +235,7 @@ func (c *Client) DeleteInbound(id int) error {
 }
 
 func (c *Client) RestartXray() error {
-	req, err := http.NewRequest(http.MethodPost, c.base+"/panel/api/server/restartXrayService", nil)
+	req, err := http.NewRequest(http.MethodPost, strings.TrimRight(c.base, "/")+"/panel/api/server/restartXrayService", nil)
 	if err != nil {
 		return err
 	}
@@ -268,8 +274,11 @@ func checkMsg(resp *http.Response) error {
 	if err := json.Unmarshal(body, &msg); err != nil {
 		return nil
 	}
-	if !msg.Success && msg.Msg != "" {
-		return fmt.Errorf("%s", msg.Msg)
+	if !msg.Success {
+		if msg.Msg != "" {
+			return fmt.Errorf("%s", msg.Msg)
+		}
+		return fmt.Errorf("request failed (success=false)")
 	}
 	return nil
 }

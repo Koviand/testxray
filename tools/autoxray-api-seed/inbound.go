@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -49,11 +51,13 @@ func (c *Client) postInbound(path string, ib Inbound) error {
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest(http.MethodPost, c.base+"/"+path, bytes.NewReader(b))
+	url := strings.TrimRight(c.base, "/") + "/" + strings.TrimPrefix(path, "/")
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(b))
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	c.setSessionHeaders(req)
 	c.setAPIHeaders(req)
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -65,9 +69,23 @@ func (c *Client) postInbound(path string, ib Inbound) error {
 		return fmt.Errorf("%s http %d: %s", path, resp.StatusCode, string(body))
 	}
 	var msg apiMsg
-	if err := json.Unmarshal(body, &msg); err == nil && !msg.Success && msg.Msg != "" {
-		return fmt.Errorf("%s: %s", path, msg.Msg)
+	if err := json.Unmarshal(body, &msg); err != nil {
+		return fmt.Errorf("%s: invalid json response: %w body=%s", path, err, truncate(string(body), 400))
 	}
+	if !msg.Success {
+		if msg.Msg != "" {
+			return fmt.Errorf("%s: %s", path, msg.Msg)
+		}
+		return fmt.Errorf("%s: success=false", path)
+	}
+	fmt.Fprintf(os.Stderr, "seed: %s tag=%s port=%d\n", path, ib.Tag, ib.Port)
 	time.Sleep(400 * time.Millisecond)
 	return nil
+}
+
+func truncate(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+	return s[:n] + "..."
 }

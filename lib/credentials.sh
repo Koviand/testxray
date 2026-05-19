@@ -17,17 +17,28 @@ EOF
 }
 
 panel_url_from_settings() {
-  local ip port base
+  local ip port base show
+  show=$(${XUI_FOLDER:-/usr/local/x-ui}/x-ui setting -show true)
   ip=$(server_ip)
-  port=$(${XUI_FOLDER:-/usr/local/x-ui}/x-ui setting -show true | grep -Eo 'port: .+' | awk '{print $2}')
-  base=$(${XUI_FOLDER:-/usr/local/x-ui}/x-ui setting -show true | grep -Eo 'webBasePath: .+' | awk '{print $2}')
+  port=$(echo "$show" | grep -Eo 'port: .+' | awk '{print $2}')
+  base=$(echo "$show" | grep -Eo 'webBasePath: .+' | awk '{print $2}')
   base="${base#/}"
+  base="${base%/}"
   if [[ -n "$base" ]]; then
-    base="/${base}/"
+    echo "http://${ip}:${port}/${base}/"
   else
-    base="/"
+    echo "http://${ip}:${port}/"
   fi
-  echo "http://${ip}:${port}${base}"
+}
+
+refresh_credentials_from_panel() {
+  read_setting_user_pass
+  local url token bp
+  url=$(panel_url_from_settings)
+  token=$(read_api_token)
+  bp=$(echo "$url" | sed -E 's#https?://[^/]+##' )
+  [[ "$bp" == "/" ]] && bp=""
+  write_credentials "$url" "$PANEL_USER" "$PANEL_PASS" "$token" "$bp"
 }
 
 read_setting_user_pass() {

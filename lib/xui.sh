@@ -43,17 +43,9 @@ configure_xui_settings() {
 
   systemctl restart x-ui
   sleep 4
-
-  PANEL_USER="$user"
-  PANEL_PASS="$pass"
-  PANEL_PORT="$port"
-  WEB_BASE_PATH="/${base}/"
-
-  local token
-  token=$(read_api_token)
-  local url="http://$(server_ip):${port}/${base}/"
-  write_credentials "$url" "$user" "$pass" "$token" "$WEB_BASE_PATH"
-  export PANEL_URL="$url"
+  refresh_credentials_from_panel
+  export PANEL_URL
+  PANEL_URL=$(grep '^PANEL_URL=' "$TESTXRAY_CREDENTIALS" | cut -d= -f2-)
 }
 
 wait_for_panel() {
@@ -83,10 +75,15 @@ build_api_seed() {
 run_api_seed() {
   local extra=()
   [[ "${FORCE_SEED:-0}" == "1" ]] && extra+=(--force)
+  log "Refreshing panel credentials from live x-ui settings..."
+  refresh_credentials_from_panel
+  systemctl stop xray 2>/dev/null || true
   log "Seeding inbounds via panel API..."
-  autoxray-api-seed \
+  if ! autoxray-api-seed \
     --credentials "$TESTXRAY_CREDENTIALS" \
     --state "$AUTOXRAY_METADATA" \
     --install-dir "$INSTALL_ROOT" \
-    "${extra[@]}"
+    "${extra[@]}" 2>&1 | tee /var/log/testxray-seed.log; then
+    die "autoxray-api-seed failed — see /var/log/testxray-seed.log"
+  fi
 }

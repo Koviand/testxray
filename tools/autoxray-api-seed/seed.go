@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -36,6 +37,7 @@ func RunSeed(client *Client, meta *Metadata, templatesDir, xrayTpl string, force
 		if err != nil {
 			return err
 		}
+		fmt.Fprintf(os.Stderr, "upsert inbound %s (port %d)...\n", tag, ib.Port)
 		if err := client.UpsertInbound(ib); err != nil {
 			return fmt.Errorf("upsert %s: %w", tag, err)
 		}

@@ -3,7 +3,19 @@ package main
 import (
 	"encoding/json"
 	"os"
+	"strings"
 )
+
+func shortSubID(tag string) string {
+	s := strings.ReplaceAll(tag, "vs", "")
+	if len(s) > 12 {
+		s = s[:12]
+	}
+	if s == "" {
+		s = "ax"
+	}
+	return s
+}
 
 type Metadata struct {
 	Version     int      `json:"version"`
@@ -42,7 +54,7 @@ func (m *Metadata) TemplateVars(tag string) map[string]string {
 	return map[string]string{
 		"UUID":         m.UUID,
 		"EMAIL":        "autoxray-" + tag + "@local",
-		"SUB_ID":       "ax" + tag,
+		"SUB_ID":       shortSubID(tag),
 		"DOMAIN":       m.Domain,
 		"PRIVATE_KEY":  m.PrivateKey,
 		"PUBLIC_KEY":   m.PublicKey,
