@@ -136,6 +136,17 @@ certs_ready() {
   [[ -s /var/lib/xray/cert/fullchain.pem && -s /var/lib/xray/cert/privkey.pem ]]
 }
 
+generate_selfsigned_cert() {
+  echo -e "${YEL}Генерация временного self-signed сертификата для ${DOMAIN} (90 дней)...${NC}"
+  echo -e "${YEL}Профили TLS на 8443 будут с предупреждением браузера. REALITY на 443 не зависит от LE.${NC}"
+  echo -e "${YEL}После снятия rate-limit LE: certbot certonly ... или повторная установка без --skip-certbot${NC}"
+  openssl req -x509 -nodes -days 90 -newkey rsa:2048 \
+    -keyout /var/lib/xray/cert/privkey.pem \
+    -out /var/lib/xray/cert/fullchain.pem \
+    -subj "/CN=${DOMAIN}" 2>/dev/null
+  chmod 744 /var/lib/xray/cert/privkey.pem /var/lib/xray/cert/fullchain.pem
+}
+
 copy_le_certs_to_xray || true
 
 if [ "$PANEL_MODE" -eq 1 ]; then
@@ -155,6 +166,9 @@ elif copy_le_certs_to_xray; then
 elif [[ "${SKIP_CERTBOT:-0}" == "1" ]]; then
   echo -e "${YEL}SKIP_CERTBOT=1 — запрос нового сертификата пропущен.${NC}"
   SKIP_CERTBOT_RUN=1
+  if ! certs_ready && [ "$PANEL_MODE" -eq 1 ]; then
+    generate_selfsigned_cert
+  fi
 fi
 
 RET=0
@@ -181,15 +195,26 @@ elif [ "$PANEL_MODE" -eq 1 ] && copy_le_certs_to_xray; then
   echo -e "${NC}"
 elif certs_ready; then
   echo -e "\n${YEL}certbot завершился с ошибкой, но файлы cert уже на месте — продолжаем.${NC}"
-else
+elif [ "$PANEL_MODE" -eq 1 ] && [[ "${TESTXRAY_SELF_SIGNED_ON_FAIL:-1}" == "1" ]]; then
+  generate_selfsigned_cert
+  if certs_ready; then
+    echo -e "\n${YEL}========================================"
+    echo    "⚠  certbot не удался — продолжаем с self-signed cert"
+    echo    "⚠  Замените на Let's Encrypt после снятия rate-limit"
+    echo    "========================================"
+    echo -e "${NC}"
+  else
+    RET=1
+  fi
+fi
+
+if ! certs_ready; then
   echo -e "\n${RED}========================================"
-  echo    "❌  CERTBOT ЗАВЕРШИЛСЯ С ОШИБКОЙ"
-  echo    "❌  Сертификат https от letsencrypt НЕ ПОЛУЧЕН!"
-  echo    "❌  Смотрите выше логи процесса получения сертификата"
-  echo    "❌  Код возврата: $RET"
+  echo    "❌  Нет TLS сертификата в /var/lib/xray/cert"
+  echo    "❌  certbot код: $RET"
   if [ "$PANEL_MODE" -eq 1 ]; then
-    echo    "❌  Повторите после снятия rate-limit или с SKIP_CERTBOT=1 если cert уже есть:"
-    echo    "       ls -la /etc/letsencrypt/live/$DOMAIN/"
+    echo    "❌  Попробуйте: bash install.sh -- ${DOMAIN} --skip-certbot"
+    echo    "       (временный self-signed) или дождитесь rate-limit LE"
   fi
   echo    "========================================"
   echo -e "${NC}"

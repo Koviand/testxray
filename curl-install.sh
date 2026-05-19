@@ -18,12 +18,16 @@ fi
 
 if [[ -d "$INSTALL_ROOT/.git" ]]; then
   git -C "$INSTALL_ROOT" fetch origin "$REPO_BRANCH" --depth 1 2>/dev/null || true
-  git -C "$INSTALL_ROOT" checkout "$REPO_BRANCH" 2>/dev/null || true
-  git -C "$INSTALL_ROOT" pull --ff-only origin "$REPO_BRANCH" 2>/dev/null || true
+  git -C "$INSTALL_ROOT" reset --hard "origin/${REPO_BRANCH}" 2>/dev/null || {
+    echo "git reset failed; re-cloning ${INSTALL_ROOT}..." >&2
+    rm -rf "$INSTALL_ROOT"
+    git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$INSTALL_ROOT"
+  }
 else
   rm -rf "$INSTALL_ROOT"
   git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$INSTALL_ROOT"
 fi
 
 chmod +x "$INSTALL_ROOT"/install.sh "$INSTALL_ROOT"/uninstall.sh 2>/dev/null || true
+chmod +x "$INSTALL_ROOT"/lib/*.sh "$INSTALL_ROOT"/hooks/*.sh "$INSTALL_ROOT"/scripts/*.sh 2>/dev/null || true
 exec "$INSTALL_ROOT/install.sh" "$@"

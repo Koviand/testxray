@@ -34,7 +34,16 @@ export SKIP_CERTBOT=1
 bash /usr/local/testxray/install.sh -- testkovi.chickenkiller.com --skip-certbot
 ```
 
-Проверка: `ls -la /etc/letsencrypt/live/testkovi.chickenkiller.com/`
+Проверка: `ls -la /etc/letsencrypt/live/ваш.домен/`
+
+Если LE-сертификата нет (rate-limit), установка с `--skip-certbot` создаст **временный self-signed** cert (профили на 8443 с предупреждением; REALITY на 443 обычно работает).
+
+Обновить копию на сервере (при расхождении git):
+
+```bash
+cd /usr/local/testxray && git fetch origin main && git reset --hard origin/main
+bash install.sh -- ваш.домен.com --skip-certbot
+```
 
 ## Важно
 
