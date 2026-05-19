@@ -5,16 +5,16 @@ Target: clean VPS, Debian 12 or Ubuntu 22.04/24.04, root, domain A-record → se
 ## Install
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/Koviand/testxray/main/install.sh) -- your.domain.com
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/Koviand/testxray/main/curl-install.sh)" -- your.domain.com
 ```
 
-Expected phase order in installer output:
+Expected log phases (in order):
 
-1. Dependencies (apt: nginx, certbot, golang, …)
-2. 3x-ui panel (official `MHSanaei/3x-ui` install script)
-3. autoXRAY (nginx, cert, WARP, metadata)
-4. Import 7 inbounds into panel
-5. Verify
+1. `[1/5] Dependencies`
+2. `[2/5] 3x-ui (official)`
+3. `[3/5] autoXRAY infrastructure`
+4. `[4/5] INBOUND → panel`
+5. `[5/5] Verify`
 
 ## Verify
 

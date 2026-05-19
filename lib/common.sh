@@ -41,9 +41,8 @@ ensure_deps() {
   apt-get update -qq
   apt-get install -y \
     curl jq git python3 ca-certificates golang-go openssl \
-    nginx certbot dnsutils
-  systemctl enable --now nginx 2>/dev/null || true
-  export TESTXRAY_DEPS_INSTALLED=1
+    nginx certbot python3-certbot-nginx dnsutils
+  systemctl enable nginx 2>/dev/null || true
 }
 
 ensure_dirs() {

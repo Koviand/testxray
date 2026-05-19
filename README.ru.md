@@ -10,13 +10,13 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Koviand/testxray/main/instal
 
 Нужно: Debian 12 или Ubuntu 22.04+, root, A-запись домена на IP сервера.
 
-Установщик автоматически:
+Порядок установки:
 
-1. Ставит зависимости (nginx, certbot, golang, …)
-2. Устанавливает **3x-ui** из официального [MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui)
-3. Разворачивает autoXRAY (nginx, TLS, WARP, `panel-metadata.json`)
-4. Импортирует **7 inbound** autoXRAY в панель через API
-5. Маскирует `xray.service` (Xray только через панель)
+1. **Зависимости** — apt (nginx, certbot, golang, …)
+2. **3x-ui** — официальный установщик [MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui)
+3. **Подготовка autoXRAY** — nginx, TLS, WARP, ключи → `panel-metadata.json` (`--panel-mode`)
+4. **INBOUND** — 7 шаблонов autoXRAY импортируются в панель через API
+5. **Проверка** — порты, `xray.service` masked, таймер подписки
 
 ## После установки
 

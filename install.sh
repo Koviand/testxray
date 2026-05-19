@@ -103,9 +103,6 @@ auto_certbot_flags() {
 phase_autoxray() {
   if [[ -f "$AUTOXRAY_METADATA" ]] && [[ "$REINSTALL" != "1" ]]; then
     log "autoXRAY already configured (${AUTOXRAY_METADATA}) — skip"
-    # shellcheck source=lib/xui.sh
-    source "${INSTALL_ROOT}/lib/xui.sh"
-    mask_standalone_xray
     return 0
   fi
   # shellcheck source=lib/setup-autoxray.sh
@@ -154,7 +151,8 @@ phase_finalize() {
   echo "  Login:     $(grep '^PANEL_USER=' "$TESTXRAY_CREDENTIALS" | cut -d= -f2-)"
   echo "  Password:  $(grep '^PANEL_PASS=' "$TESTXRAY_CREDENTIALS" | cut -d= -f2-)"
   echo "  Happ sub:  https://${DOMAIN}/${sub}.json"
-  echo "  Inbounds:  7 (autoXRAY tags in panel)"
+  echo "  Panel src: official MHSanaei/3x-ui"
+  echo "  Inbounds:  7 (autoXRAY → panel via API)"
   echo "  Log seed:  /var/log/testxray-seed.log"
   echo "=============================================="
 }
@@ -168,26 +166,24 @@ main() {
   require_root
   check_os
   ensure_dirs
-  ensure_deps
 
   chmod +x "${INSTALL_ROOT}"/lib/*.sh "${INSTALL_ROOT}"/hooks/*.sh "${INSTALL_ROOT}"/scripts/*.sh 2>/dev/null || true
 
   export INSTALL_ROOT TESTXRAY_CERTBOT_HOOK FORCE_SEED SKIP_CERTBOT
   export PANEL_USER PANEL_PASS PANEL_PORT WEB_BASE_PATH REINSTALL
-  export TESTXRAY_DEPS_INSTALLED
+
+  log "=== [1/5] Dependencies ==="
+  ensure_deps
 
   auto_certbot_flags
 
-  log "=== [1/5] Dependencies ==="
-  log "System packages ready (nginx, certbot, golang, …)"
-
-  log "=== [2/5] 3x-ui panel (official MHSanaei/3x-ui) ==="
+  log "=== [2/5] 3x-ui (official) ==="
   phase_panel
 
-  log "=== [3/5] autoXRAY (nginx, cert, WARP, metadata) ==="
+  log "=== [3/5] autoXRAY infrastructure ==="
   phase_autoxray
 
-  log "=== [4/5] Import 7 autoXRAY inbounds into panel ==="
+  log "=== [4/5] INBOUND → panel ==="
   phase_seed
 
   log "=== [5/5] Verify ==="

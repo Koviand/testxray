@@ -10,13 +10,13 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Koviand/testxray/main/instal
 
 Requirements: Debian 12 or Ubuntu 22.04+, root, domain A-record → server IP.
 
-The installer will:
+The installer runs in this order:
 
-1. Install system dependencies (nginx, certbot, golang, …)
-2. Install **3x-ui** from the [official MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui) `install.sh`
-3. Deploy autoXRAY infrastructure (nginx TLS, WARP, `panel-metadata.json`)
-4. Import **7 autoXRAY inbounds** into the panel via API (adapted templates)
-5. Mask standalone `xray.service` (only the panel manages Xray)
+1. **Dependencies** — apt packages (nginx, certbot, golang, …)
+2. **3x-ui** — official [MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui) `install.sh`
+3. **autoXRAY prep** — nginx, TLS, WARP, keys → `panel-metadata.json` (`--panel-mode`)
+4. **INBOUND import** — 7 autoXRAY templates into the panel via API
+5. **Verify** — ports, masked `xray.service`, subscription timer
 
 ## After install
 

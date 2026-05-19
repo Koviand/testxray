@@ -20,7 +20,6 @@ run_api_seed() {
   log "Refreshing panel credentials..."
   refresh_credentials_from_panel
   systemctl stop xray 2>/dev/null || true
-  systemctl mask xray 2>/dev/null || true
 
   log "Importing 7 autoXRAY inbounds into 3x-ui..."
   if ! autoxray-api-seed \
@@ -30,4 +29,8 @@ run_api_seed() {
     "${extra[@]}" 2>&1 | tee /var/log/testxray-seed.log; then
     die "Import failed — log: /var/log/testxray-seed.log"
   fi
+
+  # shellcheck source=lib/xui.sh
+  source "${INSTALL_ROOT}/lib/xui.sh"
+  mask_standalone_xray
 }
