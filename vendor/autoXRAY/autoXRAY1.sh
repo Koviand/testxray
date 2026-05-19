@@ -29,8 +29,12 @@ if [ -z "$DOMAIN" ]; then
     exit 1
 fi
 
-echo -e "${YEL}Обновление и установка необходимых пакетов...${NC}"
-apt-get update && apt-get install curl jq dnsutils openssl nginx certbot -y
+if [[ "${TESTXRAY_DEPS_INSTALLED:-0}" == "1" ]] || [[ "${AUTOXRAY_SKIP_APT:-0}" == "1" ]]; then
+    echo -e "${GRN}Зависимости уже установлены (testxray) — пропуск apt.${NC}"
+else
+    echo -e "${YEL}Обновление и установка необходимых пакетов...${NC}"
+    apt-get update && apt-get install curl jq dnsutils openssl nginx certbot -y
+fi
 systemctl enable --now nginx
 
 LOCAL_IP=$(hostname -I | awk '{print $1}')
@@ -82,8 +86,15 @@ mkdir -p "$WEB_PATH"
 # Генерируем сайт маскировку
 bash -c "$(curl -L https://github.com/xVRVx/autoXRAY/raw/refs/heads/main/test/gen_page2.sh)" -- $WEB_PATH
 
-# Установка Xray
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+# Установка Xray (в panel-mode при установленной 3x-ui — только каталог сертификатов)
+mkdir -p /var/lib/xray/cert/
+if [ "$PANEL_MODE" -eq 1 ] && [[ -x /usr/local/x-ui/x-ui ]]; then
+    echo -e "${GRN}Panel mode: 3x-ui установлен — пропуск standalone Xray install.${NC}"
+    systemctl stop xray 2>/dev/null || true
+    systemctl disable xray 2>/dev/null || true
+else
+    bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+fi
 
 # Блок CERTBOT - START
 

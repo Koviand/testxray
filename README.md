@@ -12,10 +12,11 @@ Requirements: Debian 12 or Ubuntu 22.04+, root, domain A-record → server IP.
 
 The installer will:
 
-1. Deploy autoXRAY (nginx, certs, WARP, secrets)
-2. Install 3x-ui (official release)
-3. Import **7 inbounds** into the panel via API
-4. Mask standalone `xray.service` (only panel manages Xray)
+1. Install system dependencies (nginx, certbot, golang, …)
+2. Install **3x-ui** from the [official MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui) `install.sh`
+3. Deploy autoXRAY infrastructure (nginx TLS, WARP, `panel-metadata.json`)
+4. Import **7 autoXRAY inbounds** into the panel via API (adapted templates)
+5. Mask standalone `xray.service` (only the panel manages Xray)
 
 ## After install
 

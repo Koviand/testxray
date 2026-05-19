@@ -103,6 +103,9 @@ auto_certbot_flags() {
 phase_autoxray() {
   if [[ -f "$AUTOXRAY_METADATA" ]] && [[ "$REINSTALL" != "1" ]]; then
     log "autoXRAY already configured (${AUTOXRAY_METADATA}) — skip"
+    # shellcheck source=lib/xui.sh
+    source "${INSTALL_ROOT}/lib/xui.sh"
+    mask_standalone_xray
     return 0
   fi
   # shellcheck source=lib/setup-autoxray.sh
@@ -124,7 +127,6 @@ phase_panel() {
     configure_xui_settings
   fi
   wait_for_panel
-  mask_standalone_xray
 }
 
 phase_seed() {
@@ -172,19 +174,23 @@ main() {
 
   export INSTALL_ROOT TESTXRAY_CERTBOT_HOOK FORCE_SEED SKIP_CERTBOT
   export PANEL_USER PANEL_PASS PANEL_PORT WEB_BASE_PATH REINSTALL
+  export TESTXRAY_DEPS_INSTALLED
 
   auto_certbot_flags
 
-  log "=== [1/4] autoXRAY (nginx, cert, WARP) ==="
-  phase_autoxray
+  log "=== [1/5] Dependencies ==="
+  log "System packages ready (nginx, certbot, golang, …)"
 
-  log "=== [2/4] 3x-ui panel ==="
+  log "=== [2/5] 3x-ui panel (official MHSanaei/3x-ui) ==="
   phase_panel
 
-  log "=== [3/4] Import inbounds to panel ==="
+  log "=== [3/5] autoXRAY (nginx, cert, WARP, metadata) ==="
+  phase_autoxray
+
+  log "=== [4/5] Import 7 autoXRAY inbounds into panel ==="
   phase_seed
 
-  log "=== [4/4] Verify ==="
+  log "=== [5/5] Verify ==="
   phase_finalize
 }
 

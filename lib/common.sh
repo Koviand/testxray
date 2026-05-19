@@ -39,7 +39,11 @@ ensure_deps() {
   log "Installing dependencies..."
   export DEBIAN_FRONTEND=noninteractive
   apt-get update -qq
-  apt-get install -y curl jq git python3 ca-certificates golang-go openssl
+  apt-get install -y \
+    curl jq git python3 ca-certificates golang-go openssl \
+    nginx certbot dnsutils
+  systemctl enable --now nginx 2>/dev/null || true
+  export TESTXRAY_DEPS_INSTALLED=1
 }
 
 ensure_dirs() {

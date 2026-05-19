@@ -12,10 +12,11 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Koviand/testxray/main/instal
 
 Установщик автоматически:
 
-1. Разворачивает autoXRAY (nginx, сертификаты, WARP, секреты)
-2. Ставит 3x-ui
-3. Импортирует **7 inbound** в панель через API
-4. Отключает отдельный `xray.service` (Xray только через панель)
+1. Ставит зависимости (nginx, certbot, golang, …)
+2. Устанавливает **3x-ui** из официального [MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui)
+3. Разворачивает autoXRAY (nginx, TLS, WARP, `panel-metadata.json`)
+4. Импортирует **7 inbound** autoXRAY в панель через API
+5. Маскирует `xray.service` (Xray только через панель)
 
 ## После установки
 
