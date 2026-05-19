@@ -121,11 +121,22 @@ fi
 
 mkdir -p /var/lib/xray/cert/
 
-### Проверить
-cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem /var/lib/xray/cert/fullchain.pem
-cp /etc/letsencrypt/live/$DOMAIN/privkey.pem /var/lib/xray/cert/privkey.pem
-chmod 744 /var/lib/xray/cert/privkey.pem
-chmod 744 /var/lib/xray/cert/fullchain.pem
+copy_le_certs_to_xray() {
+  local le="/etc/letsencrypt/live/$DOMAIN"
+  if [[ -f "$le/fullchain.pem" && -f "$le/privkey.pem" ]]; then
+    cp "$le/fullchain.pem" /var/lib/xray/cert/fullchain.pem
+    cp "$le/privkey.pem" /var/lib/xray/cert/privkey.pem
+    chmod 744 /var/lib/xray/cert/privkey.pem /var/lib/xray/cert/fullchain.pem
+    return 0
+  fi
+  return 1
+}
+
+certs_ready() {
+  [[ -s /var/lib/xray/cert/fullchain.pem && -s /var/lib/xray/cert/privkey.pem ]]
+}
+
+copy_le_certs_to_xray || true
 
 if [ "$PANEL_MODE" -eq 1 ]; then
   CERTBOT_HOOK="${TESTXRAY_CERTBOT_HOOK:-/usr/local/testxray/hooks/certbot-deploy.sh}"
@@ -134,26 +145,52 @@ else
   CERTBOT_DEPLOY="systemctl reload nginx; cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem /var/lib/xray/cert/fullchain.pem; cp /etc/letsencrypt/live/$DOMAIN/privkey.pem /var/lib/xray/cert/privkey.pem; chmod 744 /var/lib/xray/cert/privkey.pem; chmod 744 /var/lib/xray/cert/fullchain.pem; systemctl restart xray"
 fi
 
-certbot certonly --webroot -w /var/www/html \
-  -d $DOMAIN \
-  -m mail@$DOMAIN \
-  --agree-tos --non-interactive \
-  --deploy-hook "$CERTBOT_DEPLOY"
+SKIP_CERTBOT_RUN=0
+if certs_ready; then
+  echo -e "${GRN}Сертификаты уже в /var/lib/xray/cert — пропуск certbot.${NC}"
+  SKIP_CERTBOT_RUN=1
+elif copy_le_certs_to_xray; then
+  echo -e "${GRN}Используем существующий сертификат Let's Encrypt из /etc/letsencrypt/live/${DOMAIN}${NC}"
+  SKIP_CERTBOT_RUN=1
+elif [[ "${SKIP_CERTBOT:-0}" == "1" ]]; then
+  echo -e "${YEL}SKIP_CERTBOT=1 — запрос нового сертификата пропущен.${NC}"
+  SKIP_CERTBOT_RUN=1
+fi
 
-RET=$?
+RET=0
+if [[ "$SKIP_CERTBOT_RUN" -eq 0 ]]; then
+  certbot certonly --webroot -w /var/www/html \
+    -d $DOMAIN \
+    -m mail@$DOMAIN \
+    --agree-tos --non-interactive \
+    --deploy-hook "$CERTBOT_DEPLOY"
+  RET=$?
+  copy_le_certs_to_xray || true
+fi
 
-if [ $RET -eq 0 ]; then
+if [ $RET -eq 0 ] && certs_ready; then
   echo -e "\n${GRN}========================================"
-  echo    "✅  Команда certbot успешно выполнена"
-  echo    "✅  Сертификат https от letsencrypt ПОЛУЧЕН"
+  echo    "✅  TLS сертификат готов (/var/lib/xray/cert)"
   echo    "========================================"
   echo -e "${NC}"
+elif [ "$PANEL_MODE" -eq 1 ] && copy_le_certs_to_xray; then
+  echo -e "\n${YEL}========================================"
+  echo    "⚠  certbot не выдал новый сертификат (часто rate-limit LE)"
+  echo    "⚠  Используем уже существующий LE-сертификат — установка продолжается"
+  echo    "========================================"
+  echo -e "${NC}"
+elif certs_ready; then
+  echo -e "\n${YEL}certbot завершился с ошибкой, но файлы cert уже на месте — продолжаем.${NC}"
 else
   echo -e "\n${RED}========================================"
   echo    "❌  CERTBOT ЗАВЕРШИЛСЯ С ОШИБКОЙ"
   echo    "❌  Сертификат https от letsencrypt НЕ ПОЛУЧЕН!"
   echo    "❌  Смотрите выше логи процесса получения сертификата"
   echo    "❌  Код возврата: $RET"
+  if [ "$PANEL_MODE" -eq 1 ]; then
+    echo    "❌  Повторите после снятия rate-limit или с SKIP_CERTBOT=1 если cert уже есть:"
+    echo    "       ls -la /etc/letsencrypt/live/$DOMAIN/"
+  fi
   echo    "========================================"
   echo -e "${NC}"
   exit 1

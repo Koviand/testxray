@@ -21,7 +21,20 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/Koviand/testxray/main/cu
 ```bash
 bash /usr/local/testxray/install.sh -- домен.com --panel-port 2053
 bash /usr/local/testxray/install.sh -- домен.com --force
+bash /usr/local/testxray/install.sh -- домен.com --skip-certbot
 ```
+
+### Ошибка certbot / rate-limit Let's Encrypt
+
+Если видите `too many certificates` — на сервере уже могут быть файлы в `/etc/letsencrypt/live/ваш.домен/`.
+Обновите testxray и запустите снова (скрипт подхватит существующий cert), либо явно:
+
+```bash
+export SKIP_CERTBOT=1
+bash /usr/local/testxray/install.sh -- testkovi.chickenkiller.com --skip-certbot
+```
+
+Проверка: `ls -la /etc/letsencrypt/live/testkovi.chickenkiller.com/`
 
 ## Важно
 

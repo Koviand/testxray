@@ -11,6 +11,7 @@ DOMAIN=""
 REINSTALL=0
 AUTO_YES=0
 FORCE_SEED=0
+SKIP_CERTBOT=0
 PANEL_USER="${PANEL_USER:-admin}"
 PANEL_PASS="${PANEL_PASS:-}"
 PANEL_PORT="${PANEL_PORT:-}"
@@ -26,6 +27,7 @@ Usage:
   bash install.sh -- <domain> --panel-port 2053 --web-base-path secret/
   bash install.sh -- <domain> --panel-user admin --panel-pass 'secret'
   bash install.sh -- <domain> --force
+  bash install.sh -- <domain> --skip-certbot   (reuse existing LE certs)
 
 One-liner:
   bash -c "$(curl -fsSL https://raw.githubusercontent.com/Koviand/testxray/main/curl-install.sh)" -- example.com
@@ -40,6 +42,7 @@ parse_args() {
       -y|--yes) AUTO_YES=1; shift ;;
       --reinstall) REINSTALL=1; shift ;;
       --force) FORCE_SEED=1; shift ;;
+      --skip-certbot) SKIP_CERTBOT=1; shift ;;
       --panel-user) PANEL_USER="$2"; shift 2 ;;
       --panel-pass) PANEL_PASS="$2"; shift 2 ;;
       --panel-port) PANEL_PORT="$2"; shift 2 ;;
@@ -66,7 +69,7 @@ main() {
 
   chmod +x "${INSTALL_ROOT}"/lib/*.sh "${INSTALL_ROOT}"/hooks/*.sh "${INSTALL_ROOT}"/scripts/*.sh 2>/dev/null || true
 
-  export INSTALL_ROOT TESTXRAY_CERTBOT_HOOK FORCE_SEED PANEL_USER PANEL_PASS PANEL_PORT WEB_BASE_PATH
+  export INSTALL_ROOT TESTXRAY_CERTBOT_HOOK FORCE_SEED SKIP_CERTBOT PANEL_USER PANEL_PASS PANEL_PORT WEB_BASE_PATH
 
   # shellcheck source=lib/setup-autoxray.sh
   source "${INSTALL_ROOT}/lib/setup-autoxray.sh"
